@@ -33,6 +33,7 @@ const overviewMissableRow = document.getElementById('overviewMissableRow');
 const overviewLeavesAvailableRow = document.getElementById('overviewLeavesAvailableRow');
 
 const themeToggleBtn = document.getElementById('themeToggleBtn');
+const mainContentArea = document.getElementById('mainContentArea'); // Get the new main content div
 
 // State Variables
 let subjects = [];
@@ -55,74 +56,92 @@ function generateUniqueId() {
  * Renders all subject cards to the DOM.
  */
 function renderSubjects() {
-    subjectCardsContainer.innerHTML = '';
+    subjectCardsContainer.innerHTML = ''; // Clear existing cards
+
     let totalAttendedTheory = 0;
     let totalTotalTheory = 0;
     let totalAttendedLabs = 0;
     let totalTotalLabs = 0;
 
+    // Define P (minimum eligibility percentage as a decimal) here, common for all calculations below
+    const P = MIN_ELIGIBILITY_PERCENTAGE / 100;
+
     if (subjects.length === 0) {
         subjectCardsContainer.innerHTML = '<p class="text-center text-gray-400 mt-10">No entries yet. Time to get that bread, or just chill? 🤷‍♀️</p>';
+    } else {
+        subjects.forEach(subject => {
+            let percentage, isEligible, classesCount, statusText, emoji;
+
+            if (subject.type === 'theory') {
+                percentage = subject.totalClasses > 0 ? ((subject.attendedClasses / subject.totalClasses) * 100).toFixed(2) : 0;
+                isEligible = percentage >= MIN_ELIGIBILITY_PERCENTAGE;
+                classesCount = `${subject.attendedClasses} / ${subject.totalClasses}`;
+
+                // Corrected 'classes needed' calculation for theory (Theory T = subject.totalClasses, A = subject.attendedClasses)
+                const theoryClassesNeeded = Math.max(0, Math.ceil((P * subject.totalClasses - subject.attendedClasses) / (1 - P)));
+
+                // Classes missable calculation
+                const theoryClassesMissable = Math.max(0, Math.floor(subject.attendedClasses / P) - subject.totalClasses);
+
+                // Updated status text for eligibility
+                statusText = isEligible ?
+                    `Eligible! You're vibin'. Can still skip ${theoryClassesMissable} classes (low-key).` :
+                    `Bruh, not eligible. You need to pull up to ${theoryClassesNeeded} more classes. No cap!`;
+                emoji = isEligible ? '😎' : '😭'; // Safe or Crying
+
+                totalAttendedTheory += subject.attendedClasses;
+                totalTotalTheory += subject.totalClasses;
+
+            } else if (subject.type === 'lab') {
+                percentage = subject.totalLabs > 0 ? ((subject.attendedLabs / subject.totalLabs) * 100).toFixed(2) : 0;
+                isEligible = percentage >= MIN_ELIGIBILITY_PERCENTAGE;
+                classesCount = `${subject.attendedLabs} / ${subject.totalLabs}`;
+
+                // Corrected 'labs needed' calculation (Lab T = subject.totalLabs, A = subject.attendedLabs)
+                const labClassesNeeded = Math.max(0, Math.ceil((P * subject.totalLabs - subject.attendedLabs) / (1 - P)));
+
+                // Leaves available calculation
+                const labLeavesAvailable = Math.max(0, Math.floor(subject.attendedLabs / P) - subject.totalLabs);
+
+                // Updated status text for eligibility
+                statusText = isEligible ?
+                    `Eligible! You got ${labLeavesAvailable} leaves. Go off, king/queen! 👑` :
+                    `Big yikes! Not eligible. You need to show up to ${labClassesNeeded} more labs. It's not a drill!`;
+                emoji = isEligible ? '🕺' : '💀'; // Dancing or Skull
+
+                totalAttendedLabs += subject.attendedLabs;
+                totalTotalLabs += subject.totalLabs;
+            }
+
+            const cardHtml = `
+                <div class="subject-card" data-id="${subject.id}" data-type="${subject.type}">
+                    <h3>${subject.name} (${subject.type === 'theory' ? 'Theory' : 'Lab'})</h3>
+                    <p class="attendance-info">${subject.type === 'theory' ? 'Theory Classes' : 'Labs'}: ${classesCount}</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: ${percentage}%;"></div>
+                    </div>
+                    <div class="percentage-display ${!isEligible ? 'red' : ''}">
+                        ${percentage}% ${emoji}
+                    </div>
+                    <p class="eligibility-status">
+                        ${statusText}
+                    </p>
+                    <div class="card-buttons">
+                        <button class="edit-btn" data-id="${subject.id}">
+                            <span class="lucide lucide-edit"></span> Edit
+                        </button>
+                        <button class="delete-btn" data-id="${subject.id}">
+                            <span class="lucide lucide-trash"></span> Delete
+                        </button>
+                        <button class="overview-btn" data-id="${subject.id}">
+                            <span class="lucide lucide-eye"></span> Overview
+                        </button>
+                    </div>
+                </div>
+            `;
+            subjectCardsContainer.insertAdjacentHTML('beforeend', cardHtml);
+        });
     }
-
-    subjects.forEach(subject => {
-        let percentage, isEligible, classesCount, statusText, emoji;
-
-        if (subject.type === 'theory') {
-            percentage = subject.totalClasses > 0 ? ((subject.attendedClasses / subject.totalClasses) * 100).toFixed(2) : 0;
-            isEligible = percentage >= MIN_ELIGIBILITY_PERCENTAGE;
-            classesCount = `${subject.attendedClasses} / ${subject.totalClasses}`;
-            // Calculate missable/needed classes for theory
-            const theoryClassesMissable = Math.max(0, Math.floor(subject.attendedClasses / (MIN_ELIGIBILITY_PERCENTAGE / 100)) - subject.totalClasses);
-            const theoryClassesNeeded = Math.max(0, Math.ceil(subject.totalClasses * MIN_ELIGIBILITY_PERCENTAGE / 100) - subject.attendedClasses);
-            statusText = isEligible ? `Eligible! You're vibin'. Can still skip ${theoryClassesMissable} classes (low-key).` : `Bruh, not eligible. You need to pull up to ${theoryClassesNeeded} more classes. No cap!`;
-            emoji = isEligible ? '😎' : '😭'; // Safe or Crying
-
-            totalAttendedTheory += subject.attendedClasses;
-            totalTotalTheory += subject.totalClasses;
-
-        } else if (subject.type === 'lab') {
-            percentage = subject.totalLabs > 0 ? ((subject.attendedLabs / subject.totalLabs) * 100).toFixed(2) : 0;
-            isEligible = percentage >= MIN_ELIGIBILITY_PERCENTAGE;
-            classesCount = `${subject.attendedLabs} / ${subject.totalLabs}`;
-            // Calculate leaves available/needed for labs
-            const labLeavesAvailable = Math.max(0, Math.floor(subject.attendedLabs / (MIN_ELIGIBILITY_PERCENTAGE / 100)) - subject.totalLabs);
-            const labClassesNeeded = Math.max(0, Math.ceil(subject.totalLabs * MIN_ELIGIBILITY_PERCENTAGE / 100) - subject.attendedLabs);
-            statusText = isEligible ? `Eligible! You got ${labLeavesAvailable} leaves. Go off, king/queen! 👑` : `Big yikes! Not eligible. You need to show up to ${labClassesNeeded} more labs. It's not a drill!`;
-            emoji = isEligible ? '🕺' : '💀'; // Dancing or Skull
-
-            totalAttendedLabs += subject.attendedLabs;
-            totalTotalLabs += subject.totalLabs;
-        }
-
-        const cardHtml = `
-            <div class="subject-card" data-id="${subject.id}" data-type="${subject.type}">
-                <h3>${subject.name} (${subject.type === 'theory' ? 'Theory' : 'Lab'})</h3>
-                <p class="attendance-info">${subject.type === 'theory' ? 'Theory Classes' : 'Labs'}: ${classesCount}</p>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: ${percentage}%;"></div>
-                </div>
-                <div class="percentage-display ${!isEligible ? 'red' : ''}">
-                    ${percentage}% ${emoji}
-                </div>
-                <p class="eligibility-status">
-                    ${statusText}
-                </p>
-                <div class="card-buttons">
-                    <button class="edit-btn" data-id="${subject.id}">
-                        <span class="lucide lucide-edit"></span> Edit
-                    </button>
-                    <button class="delete-btn" data-id="${subject.id}">
-                        <span class="lucide lucide-trash"></span> Delete
-                    </button>
-                    <button class="overview-btn" data-id="${subject.id}">
-                        <span class="lucide lucide-eye"></span> Overview
-                    </button>
-                </div>
-            </div>
-        `;
-        subjectCardsContainer.insertAdjacentHTML('beforeend', cardHtml);
-    });
 
     updateTotalAttendanceSummary(totalAttendedTheory, totalTotalTheory, totalAttendedLabs, totalTotalLabs);
     addCardEventListeners();
@@ -173,10 +192,9 @@ function loadSubjects() {
     const storedSubjects = localStorage.getItem(STORAGE_KEY);
     if (storedSubjects) {
         subjects = JSON.parse(storedSubjects);
-        // Ensure backward compatibility for older data without 'type' or lab details
         subjects.forEach(subject => {
             if (typeof subject.type === 'undefined') {
-                subject.type = 'theory'; // Default to theory for old entries
+                subject.type = 'theory';
             }
             if (typeof subject.attendedLabs === 'undefined') subject.attendedLabs = 0;
             if (typeof subject.totalLabs === 'undefined') subject.totalLabs = 0;
@@ -193,19 +211,15 @@ function toggleEntryInputs() {
     if (entryTypeSelect.value === 'theory') {
         theoryInputsDiv.style.display = 'block';
         labInputsDiv.style.display = 'none';
-        // Remove 'required' attribute for hidden inputs to allow form submission
         attendedLabsInput.removeAttribute('required');
         totalLabsInput.removeAttribute('required');
-        // Add 'required' attribute for visible inputs
         attendedClassesInput.setAttribute('required', 'required');
         totalClassesInput.setAttribute('required', 'required');
     } else {
         theoryInputsDiv.style.display = 'none';
         labInputsDiv.style.display = 'block';
-        // Remove 'required' attribute for hidden inputs
         attendedClassesInput.removeAttribute('required');
         totalClassesInput.removeAttribute('required');
-        // Add 'required' attribute for visible inputs
         attendedLabsInput.setAttribute('required', 'required');
         totalLabsInput.setAttribute('required', 'required');
     }
@@ -219,7 +233,7 @@ function openSubjectModal(subjectData = null) {
     subjectModal.style.display = 'flex';
     if (subjectData) {
         modalTitle.textContent = 'Edit Entry';
-        entryTypeSelect.value = subjectData.type || 'theory'; // Ensure type is set for old entries
+        entryTypeSelect.value = subjectData.type || 'theory';
         subjectNameInput.value = subjectData.name;
         attendedClassesInput.value = subjectData.attendedClasses;
         totalClassesInput.value = subjectData.totalClasses;
@@ -228,11 +242,11 @@ function openSubjectModal(subjectData = null) {
         editingSubjectId = subjectData.id;
     } else {
         modalTitle.textContent = 'Add New Entry';
-        subjectForm.reset(); // Clear form for new entry
-        entryTypeSelect.value = 'theory'; // Default to theory for new entry
+        subjectForm.reset();
+        entryTypeSelect.value = 'theory';
         editingSubjectId = null;
     }
-    toggleEntryInputs(); // Adjust visibility based on selected type
+    toggleEntryInputs();
 }
 
 /**
@@ -240,8 +254,8 @@ function openSubjectModal(subjectData = null) {
  */
 function closeSubjectModal() {
     subjectModal.style.display = 'none';
-    subjectForm.reset(); // Reset form fields
-    editingSubjectId = null; // Clear editing ID
+    subjectForm.reset();
+    editingSubjectId = null;
 }
 
 /**
@@ -250,11 +264,12 @@ function closeSubjectModal() {
  */
 function showOverviewModal(subjectId) {
     const subject = subjects.find(s => s.id === subjectId);
-    if (!subject) return; // Should not happen if data is consistent
+    if (!subject) return;
 
     document.getElementById('overviewSubjectName').textContent = subject.name;
 
     let percentage, isEligible, attended, total, statusText, missableValue;
+    const P = MIN_ELIGIBILITY_PERCENTAGE / 100; // Define P here too
 
     if (subject.type === 'theory') {
         overviewTypeLabel.textContent = 'Theory Attendance';
@@ -262,13 +277,18 @@ function showOverviewModal(subjectId) {
         total = subject.totalClasses;
         percentage = total > 0 ? ((attended / total) * 100).toFixed(2) : 0;
         isEligible = percentage >= MIN_ELIGIBILITY_PERCENTAGE;
-        const theoryClassesMissable = Math.max(0, Math.floor(attended / (MIN_ELIGIBILITY_PERCENTAGE / 100)) - total);
-        const theoryClassesNeeded = Math.max(0, Math.ceil(total * MIN_ELIGIBILITY_PERCENTAGE / 100) - attended);
+
+        // Corrected 'classes needed' calculation for overview
+        const theoryClassesNeeded = Math.max(0, Math.ceil((P * total - attended) / (1 - P)));
+
+        // Classes missable calculation for overview
+        const theoryClassesMissable = Math.max(0, Math.floor(attended / P) - total);
+
         statusText = isEligible ? 'Eligible' : 'Not Eligible';
         missableValue = isEligible ? `${theoryClassesMissable} classes` : `${theoryClassesNeeded > 0 ? theoryClassesNeeded : 0} more classes needed to be eligible`;
 
         overviewMissableRow.style.display = 'block';
-        overviewLeavesAvailableRow.style.display = 'none'; // Hide for theory
+        overviewLeavesAvailableRow.style.display = 'none';
 
     } else if (subject.type === 'lab') {
         overviewTypeLabel.textContent = 'Lab Attendance';
@@ -276,12 +296,17 @@ function showOverviewModal(subjectId) {
         total = subject.totalLabs;
         percentage = total > 0 ? ((attended / total) * 100).toFixed(2) : 0;
         isEligible = percentage >= MIN_ELIGIBILITY_PERCENTAGE;
-        const labLeavesAvailable = Math.max(0, Math.floor(attended / (MIN_ELIGIBILITY_PERCENTAGE / 100)) - total);
-        const labClassesNeeded = Math.max(0, Math.ceil(total * MIN_ELIGIBILITY_PERCENTAGE / 100) - attended);
+
+        // Corrected 'labs needed' calculation for overview
+        const labClassesNeeded = Math.max(0, Math.ceil((P * total - attended) / (1 - P)));
+
+        // Leaves available calculation for overview
+        const labLeavesAvailable = Math.max(0, Math.floor(attended / P) - total);
+
         statusText = isEligible ? 'Eligible' : 'Not Eligible';
         missableValue = isEligible ? `${labLeavesAvailable} leaves` : `${labClassesNeeded > 0 ? labClassesNeeded : 0} more labs needed to be eligible`;
 
-        overviewMissableRow.style.display = 'none'; // Hide for labs
+        overviewMissableRow.style.display = 'none';
         overviewLeavesAvailableRow.style.display = 'block';
         document.getElementById('overviewLeavesAvailable').textContent = missableValue;
     }
@@ -290,8 +315,7 @@ function showOverviewModal(subjectId) {
     document.getElementById('overviewTotal').textContent = total;
     document.getElementById('overviewPercentage').textContent = `${percentage}%`;
     document.getElementById('overviewStatus').textContent = statusText;
-    document.getElementById('overviewMissable').textContent = missableValue;
-
+    document.getElementById('overviewMissable').textContent = missableValue; // This is used for the general status update in overview
 
     overviewModal.style.display = 'flex';
 }
@@ -308,7 +332,7 @@ function closeOverviewModal() {
  * @param {Event} event - The form submission event.
  */
 function handleSubjectFormSubmit(event) {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
 
     const type = entryTypeSelect.value;
     const name = subjectNameInput.value.trim();
@@ -317,10 +341,10 @@ function handleSubjectFormSubmit(event) {
     if (type === 'theory') {
         attended = parseInt(attendedClassesInput.value);
         total = parseInt(totalClassesInput.value);
-        attendedLabs = 0; // Ensure labs are 0 for theory type
+        attendedLabs = 0;
         totalLabs = 0;
-    } else { // type === 'lab'
-        attended = 0; // Ensure theory are 0 for lab type
+    } else {
+        attended = 0;
         total = 0;
         attendedLabs = parseInt(attendedLabsInput.value);
         totalLabs = parseInt(totalLabsInput.value);
@@ -341,12 +365,12 @@ function handleSubjectFormSubmit(event) {
         return;
     }
 
-    // Logic for adding or editing a subject
+
     if (editingSubjectId) {
         const index = subjects.findIndex(s => s.id === editingSubjectId);
         if (index !== -1) {
             subjects[index] = {
-                ...subjects[index], // Keep existing properties if any
+                ...subjects[index],
                 type,
                 name,
                 attendedClasses: attended,
@@ -367,9 +391,9 @@ function handleSubjectFormSubmit(event) {
         });
     }
 
-    saveSubjects();    // Save updated subjects to local storage
-    renderSubjects();  // Re-render the subject cards
-    closeSubjectModal(); // Close the modal
+    saveSubjects();
+    renderSubjects();
+    closeSubjectModal();
 }
 
 /**
@@ -378,7 +402,7 @@ function handleSubjectFormSubmit(event) {
  */
 function handleDeleteSubject(subjectId) {
     showMessageBox('Pakka delete karna hai? Yeh toh tere future se bhi zyada jaldi gayab ho jayega!', 'confirm', () => {
-        subjects = subjects.filter(s => s.id !== subjectId); // Filter out the deleted subject
+        subjects = subjects.filter(s => s.id !== subjectId);
         saveSubjects();
         renderSubjects();
         showMessageBox('Entry gayab! Jaise tere doubts exam ke baad!', 'success');
@@ -389,7 +413,6 @@ function handleDeleteSubject(subjectId) {
  * Attaches event listeners to dynamically created subject cards.
  */
 function addCardEventListeners() {
-    // Attach listeners for Edit buttons
     document.querySelectorAll('.subject-card .edit-btn').forEach(button => {
         button.onclick = (e) => {
             const id = e.currentTarget.dataset.id;
@@ -400,7 +423,6 @@ function addCardEventListeners() {
         };
     });
 
-    // Attach listeners for Delete buttons
     document.querySelectorAll('.subject-card .delete-btn').forEach(button => {
         button.onclick = (e) => {
             const id = e.currentTarget.dataset.id;
@@ -408,7 +430,6 @@ function addCardEventListeners() {
         };
     });
 
-    // Attach listeners for Overview buttons
     document.querySelectorAll('.subject-card .overview-btn').forEach(button => {
         button.onclick = (e) => {
             const id = e.currentTarget.dataset.id;
@@ -446,18 +467,18 @@ function showMessageBox(message, type, onConfirm = null) {
         </div>
     `;
     msgBox.innerHTML = contentHtml;
-    msgBox.style.display = 'flex'; // Show the message box
+    msgBox.style.display = 'flex';
 
     document.getElementById('msgBoxOkBtn').onclick = () => {
-        msgBox.style.display = 'none'; // Hide on OK click
+        msgBox.style.display = 'none';
         if (type === 'confirm' && onConfirm) {
-            onConfirm(); // Execute callback for confirm type
+            onConfirm();
         }
     };
 
     if (type === 'confirm') {
         document.getElementById('msgBoxCancelBtn').onclick = () => {
-            msgBox.style.display = 'none'; // Hide on Cancel click
+            msgBox.style.display = 'none';
         };
     }
 }
@@ -485,35 +506,29 @@ function updateThemeToggleButton(isBrightMode) {
         iconSpan.classList.remove('lucide-moon');
         iconSpan.classList.add('lucide-sun');
     }
-    // Re-create lucide icons to ensure correct rendering after class change
     lucide.createIcons();
 }
 
 
-// --- Event Listeners ---
+// Event Listeners
 addEntryBtn.addEventListener('click', () => openSubjectModal());
 resetAllBtn.addEventListener('click', () => {
     showMessageBox('Saara data udaana hai? Soch le, yeh "kal se padhunga" wali feeling jaisi hai, waapis nahi aayegi!', 'confirm', () => {
-        subjects = []; // Clear all subjects
+        subjects = [];
         saveSubjects();
         renderSubjects();
         showMessageBox('Sab reset! Nayi shuruat, naye bahane!', 'success');
     });
 });
 
-// Modal close buttons
 subjectModal.querySelector('.close-button').addEventListener('click', closeSubjectModal);
 cancelModalBtn.addEventListener('click', closeSubjectModal);
+subjectForm.addEventListener('submit', handleSubjectFormSubmit);
+entryTypeSelect.addEventListener('change', toggleEntryInputs);
+
 overviewModal.querySelector('.close-button').addEventListener('click', closeOverviewModal);
 closeOverviewModalBtn.addEventListener('click', closeOverviewModal);
 
-// Form submission
-subjectForm.addEventListener('submit', handleSubjectFormSubmit);
-
-// Toggle theory/lab inputs based on selection
-entryTypeSelect.addEventListener('change', toggleEntryInputs);
-
-// Close modals when clicking outside
 window.addEventListener('click', (event) => {
     if (event.target === subjectModal) {
         closeSubjectModal();
@@ -523,15 +538,12 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// Theme toggle button
 themeToggleBtn.addEventListener('click', toggleTheme);
 
-// --- Initial Load ---
+// Initial load and render
 window.onload = function() {
-    // Set a dummy user ID
     userIdDisplay.textContent = '16090792577082014388';
 
-    // Apply saved theme
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
     if (savedTheme === 'bright') {
         document.body.classList.add('bright-mode');
@@ -541,7 +553,10 @@ window.onload = function() {
         updateThemeToggleButton(false);
     }
 
-    // Load and render subjects on page load
     loadSubjects();
-    renderSubjects();
+    renderSubjects(); // This populates the cards inside mainContentArea
+
+    // Reveal the main content area after everything is loaded and rendered
+    document.body.classList.remove('loading'); // Remove the loading class
+    mainContentArea.style.display = 'block'; // Set display to block
 };
