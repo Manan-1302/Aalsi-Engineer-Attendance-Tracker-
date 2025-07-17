@@ -55,6 +55,21 @@ body {
     transition: background-color 0.4s ease, color 0.4s ease;
 }
 
+/* Hides content when body has 'loading' class, except the header */
+body.loading #mainContentArea {
+    opacity: 0;
+    pointer-events: none; /* Prevents interaction with hidden elements */
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+/* When loading class is removed, content fades in */
+body:not(.loading) #mainContentArea {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
 .container {
     width: 100%;
     max-width: 800px;
@@ -185,7 +200,7 @@ body {
 }
 
 .subject-cards-container {
-    display: grid;
+    display: grid; /* Default grid display when visible */
     gap: 28px; /* More spacing */
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Slightly wider min */
 }
@@ -324,9 +339,8 @@ body {
     overflow: auto;
     background-color: rgba(0,0,0,0.7); /* Darker overlay */
     backdrop-filter: blur(8px); /* More blur */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; /* Use flexbox to center content */
+    align-items: center; /* Use flexbox to center content */
 }
 
 .modal-content {
