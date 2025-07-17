@@ -8,8 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
+<body class="loading"> <div class="container">
         <header class="header">
             <h1>Aalsi Engineer (By Manan)<span class="lucide lucude-brain" style="color: var(--accent-pink);"></span> <span class="lucide lucide-bed-double" style="color: var(--accent-pink);"></span></h1>
             <button id="themeToggleBtn" class="theme-toggle-btn">
@@ -17,32 +16,33 @@
             </button>
         </header>
 
-        <div class="user-info">
-            <span>Your User ID:</span>
-            <span id="userIdDisplay">Loading... (No cap, just for show!)</span>
-        </div>
-
-        <div class="total-attendance-summary">
-            <strong>Overall Theory Attendance:</strong>
-            <span id="totalAttendancePercentage" class="percentage">0.00%</span>
-            <span>Classes Attended: <strong id="totalAttended">0</strong> / Total Classes: <strong id="totalTotal">0</strong></span>
-            <hr class="my-2 border-color">
-            <strong>Overall Lab Attendance:</strong>
-            <span id="totalLabAttendancePercentage" class="percentage">0.00%</span>
-            <span>Labs Attended: <strong id="totalLabsAttended">0</strong> / Total Labs: <strong id="totalLabsTotal">0</strong></span>
-        </div>
-
-        <div class="action-buttons">
-            <button class="add-entry-btn" id="addEntryBtn">
-                <span class="lucide lucide-plus"></span> Add New Entry (It's giving productive!)
-            </button>
-            <button class="reset-all-btn" id="resetAllBtn">
-                <span class="lucide lucide-trash-2"></span> Reset All (Periodt. Start fresh!)
-            </button>
-        </div>
-
-        <div class="subject-cards-container" id="subjectCardsContainer">
+        <div id="mainContentArea" style="display: none;"> <div class="user-info">
+                <span>Your User ID:</span>
+                <span id="userIdDisplay">Loading... (No cap, just for show!)</span>
             </div>
+
+            <div class="total-attendance-summary">
+                <strong>Overall Theory Attendance:</strong>
+                <span id="totalAttendancePercentage" class="percentage">0.00%</span>
+                <span>Classes Attended: <strong id="totalAttended">0</strong> / Total Classes: <strong id="totalTotal">0</strong></span>
+                <hr class="my-2 border-color">
+                <strong>Overall Lab Attendance:</strong>
+                <span id="totalLabAttendancePercentage" class="percentage">0.00%</span>
+                <span>Labs Attended: <strong id="totalLabsAttended">0</strong> / Total Labs: <strong id="totalLabsTotal">0</strong></span>
+            </div>
+
+            <div class="action-buttons">
+                <button class="add-entry-btn" id="addEntryBtn">
+                    <span class="lucide lucide-plus"></span> Add New Entry (It's giving productive!)
+                </button>
+                <button class="reset-all-btn" id="resetAllBtn">
+                    <span class="lucide lucide-trash-2"></span> Reset All (Periodt. Start fresh!)
+                </button>
+            </div>
+
+            <div class="subject-cards-container" id="subjectCardsContainer">
+                </div>
+        </div>
     </div>
 
     <div id="subjectModal" class="modal">
