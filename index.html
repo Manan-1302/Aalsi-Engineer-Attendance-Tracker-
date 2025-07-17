@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aalsi Engineer Attendance Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/@tailwindcss/typography@0.5.10/dist/typography.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Aalsi Engineer (By Manan)<span class="lucide lucude-brain" style="color: var(--accent-pink);"></span> <span class="lucide lucide-bed-double" style="color: var(--accent-pink);"></span></h1>
+            <button id="themeToggleBtn" class="theme-toggle-btn">
+                <span class="lucide lucide-sun"></span>
+            </button>
+        </header>
+
+        <div class="user-info">
+            <span>Your User ID:</span>
+            <span id="userIdDisplay">Loading... (No cap, just for show!)</span>
+        </div>
+
+        <div class="total-attendance-summary">
+            <strong>Overall Theory Attendance:</strong>
+            <span id="totalAttendancePercentage" class="percentage">0.00%</span>
+            <span>Classes Attended: <strong id="totalAttended">0</strong> / Total Classes: <strong id="totalTotal">0</strong></span>
+            <hr class="my-2 border-color">
+            <strong>Overall Lab Attendance:</strong>
+            <span id="totalLabAttendancePercentage" class="percentage">0.00%</span>
+            <span>Labs Attended: <strong id="totalLabsAttended">0</strong> / Total Labs: <strong id="totalLabsTotal">0</strong></span>
+        </div>
+
+        <div class="action-buttons">
+            <button class="add-entry-btn" id="addEntryBtn">
+                <span class="lucide lucide-plus"></span> Add New Entry (It's giving productive!)
+            </button>
+            <button class="reset-all-btn" id="resetAllBtn">
+                <span class="lucide lucide-trash-2"></span> Reset All (Periodt. Start fresh!)
+            </button>
+        </div>
+
+        <div class="subject-cards-container" id="subjectCardsContainer">
+            </div>
+    </div>
+
+    <div id="subjectModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modalTitle">Add New Entry</h2>
+            <form id="subjectForm">
+                <label for="entryType">Entry Type (Choose your fighter!):</label>
+                <select id="entryType" required>
+                    <option value="theory">Theory Class (The struggle is real)</option>
+                    <option value="lab">Lab (Vibes are good here!)</option>
+                </select>
+
+                <label for="subjectName">Subject Name (What's the tea?):</label>
+                <input type="text" id="subjectName" placeholder="e.g., Adulting 101, Meme Analysis" required>
+
+                <div id="theoryInputs">
+                    <label for="attendedClasses">Theory Classes Attended (Did you pass the vibe check?):</label>
+                    <input type="number" id="attendedClasses" min="0" value="0" required>
+
+                    <label for="totalClasses">Total Theory Classes (The whole mood board):</label>
+                    <input type="number" id="totalClasses" min="0" value="0" required>
+                </div>
+
+                <div id="labInputs" style="display: none;">
+                    <label for="attendedLabs">Labs Attended (Did you slay or nay?):</label>
+                    <input type="number" id="attendedLabs" min="0" value="0" required>
+
+                    <label for="totalLabs">Total Labs (The whole shebang):</label>
+                    <input type="number" id="totalLabs" min="0" value="0" required>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" id="cancelModalBtn">Cancel (I'm out. Peace! ✌️)</button>
+                    <button type="submit" class="confirm-btn" id="saveSubjectBtn">Save Entry (For the glow-up! ✨)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="overviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="overviewSubjectName"></h2>
+            <h3 class="text-lg font-semibold mb-2" id="overviewTypeLabel" style="color: var(--text-primary);"></h3>
+            <p><strong>Attended:</strong> <span id="overviewAttended"></span></p>
+            <p><strong>Total:</strong> <span id="overviewTotal"></span></p>
+            <p><strong>Percentage:</strong> <span id="overviewPercentage"></span></p>
+            <p><strong>Status:</strong> <span id="overviewStatus"></span></p>
+            <p id="overviewMissableRow"><strong>Classes Missable:</strong> <span id="overviewMissable"></span></p>
+            <p id="overviewLeavesAvailableRow"><strong>Leaves Available:</strong> <span id="overviewLeavesAvailable"></span></p>
+
+            <div class="modal-buttons">
+                <button type="button" class="cancel-btn" id="closeOverviewModalBtn">Close (Bet!)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
